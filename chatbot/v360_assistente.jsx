@@ -1,0 +1,248 @@
+import React, { useState, useMemo, useRef, useEffect } from "react";
+import { Send, Bot, User, Loader2, MessageSquare, CheckCircle2, AlertTriangle, Wallet, FileText } from "lucide-react";
+
+// Dados reais extraídos de notas_fiscais_v360.xlsx (mesma base usada no Power BI)
+const RECORDS = [{"id": "NF-20260616-0001", "un": "UN Oeste", "data": "2026-06-16", "vErp": 207670.57, "vNf": null, "dif": null, "st": "Pendente", "tipo": null, "atraso": 0, "risco": 0}, {"id": "NF-20260616-0002", "un": "UN Centro", "data": "2026-06-16", "vErp": 72358.52, "vNf": 72358.52, "dif": 0, "st": "Conciliado", "tipo": null, "atraso": 0, "risco": 0}, {"id": "NF-20260616-0003", "un": "UN Centro", "data": "2026-06-16", "vErp": 126614.18, "vNf": 126614.18, "dif": 0, "st": "Divergente", "tipo": "Atraso na carga", "atraso": 2, "risco": 0}, {"id": "NF-20260616-0004", "un": "UN Oeste", "data": "2026-06-16", "vErp": 70820.86, "vNf": 70820.86, "dif": 0, "st": "Conciliado", "tipo": null, "atraso": 0, "risco": 0}, {"id": "NF-20260616-0005", "un": "UN Centro", "data": "2026-06-16", "vErp": 85710.88, "vNf": 85710.88, "dif": 0, "st": "Conciliado", "tipo": null, "atraso": 0, "risco": 0}, {"id": "NF-20260616-0006", "un": "UN Vale do Paraíba", "data": "2026-06-16", "vErp": 292348.61, "vNf": 292348.61, "dif": 0, "st": "Divergente", "tipo": "Atraso na carga", "atraso": 2, "risco": 0}, {"id": "NF-20260617-0007", "un": "UN Leste", "data": "2026-06-17", "vErp": 280499.2, "vNf": 280499.2, "dif": 0, "st": "Divergente", "tipo": "Atraso na carga", "atraso": 3, "risco": 0}, {"id": "NF-20260617-0008", "un": "UN Centro", "data": "2026-06-17", "vErp": 83006.51, "vNf": 83006.51, "dif": 0, "st": "Conciliado", "tipo": null, "atraso": 0, "risco": 0}, {"id": "NF-20260617-0009", "un": "UN Vale do Paraíba", "data": "2026-06-17", "vErp": 111326.87, "vNf": 111326.87, "dif": 0, "st": "Conciliado", "tipo": null, "atraso": 0, "risco": 0}, {"id": "NF-20260617-0010", "un": "UN Vale do Paraíba", "data": "2026-06-17", "vErp": 114541.96, "vNf": 117978.22, "dif": 3436.25999999999, "st": "Divergente", "tipo": "Valor divergente", "atraso": 0, "risco": 3436.25999999999}, {"id": "NF-20260617-0011", "un": "UN Centro", "data": "2026-06-17", "vErp": 122681.42, "vNf": 122681.42, "dif": 0, "st": "Conciliado", "tipo": null, "atraso": 0, "risco": 0}, {"id": "NF-20260618-0012", "un": "UN Norte", "data": "2026-06-18", "vErp": 239520.84, "vNf": 239520.84, "dif": 0, "st": "Conciliado", "tipo": null, "atraso": 0, "risco": 0}, {"id": "NF-20260618-0013", "un": "UN Norte", "data": "2026-06-18", "vErp": 164895.15, "vNf": 164895.15, "dif": 0, "st": "Conciliado", "tipo": null, "atraso": 0, "risco": 0}, {"id": "NF-20260618-0014", "un": "UN Vale do Paraíba", "data": "2026-06-18", "vErp": 0, "vNf": 380923.33, "dif": 380923.33, "st": "Divergente", "tipo": "Nota faltante na origem", "atraso": 0, "risco": 380923.33}, {"id": "NF-20260618-0015", "un": "UN Centro", "data": "2026-06-18", "vErp": 252802.36, "vNf": 252802.36, "dif": 0, "st": "Conciliado", "tipo": null, "atraso": 0, "risco": 0}, {"id": "NF-20260618-0016", "un": "UN Sul", "data": "2026-06-18", "vErp": 159571.99, "vNf": 159571.99, "dif": 0, "st": "Conciliado", "tipo": null, "atraso": 0, "risco": 0}, {"id": "NF-20260618-0017", "un": "UN Leste", "data": "2026-06-18", "vErp": 0, "vNf": 260369.77, "dif": 260369.77, "st": "Divergente", "tipo": "Nota faltante na origem", "atraso": 0, "risco": 260369.77}, {"id": "NF-20260618-0018", "un": "UN Oeste", "data": "2026-06-18", "vErp": 449971.6, "vNf": 449971.6, "dif": 0, "st": "Conciliado", "tipo": null, "atraso": 0, "risco": 0}, {"id": "NF-20260619-0019", "un": "UN Centro", "data": "2026-06-19", "vErp": 287861.67, "vNf": 287861.67, "dif": 0, "st": "Conciliado", "tipo": null, "atraso": 0, "risco": 0}, {"id": "NF-20260619-0020", "un": "UN Norte", "data": "2026-06-19", "vErp": 183055.06, "vNf": 183055.06, "dif": 0, "st": "Conciliado", "tipo": null, "atraso": 0, "risco": 0}, {"id": "NF-20260619-0021", "un": "UN Sul", "data": "2026-06-19", "vErp": 290952.84, "vNf": 290952.84, "dif": 0, "st": "Conciliado", "tipo": null, "atraso": 0, "risco": 0}, {"id": "NF-20260619-0022", "un": "UN Leste", "data": "2026-06-19", "vErp": 455106.49, "vNf": 455106.49, "dif": 0, "st": "Conciliado", "tipo": null, "atraso": 0, "risco": 0}, {"id": "NF-20260620-0023", "un": "UN Leste", "data": "2026-06-20", "vErp": 359021.7, "vNf": 359021.7, "dif": 0, "st": "Conciliado", "tipo": null, "atraso": 0, "risco": 0}, {"id": "NF-20260620-0024", "un": "UN Centro", "data": "2026-06-20", "vErp": 476893.17, "vNf": 476893.17, "dif": 0, "st": "Conciliado", "tipo": null, "atraso": 0, "risco": 0}, {"id": "NF-20260620-0025", "un": "UN Norte", "data": "2026-06-20", "vErp": 352482.51, "vNf": 352482.51, "dif": 0, "st": "Conciliado", "tipo": null, "atraso": 0, "risco": 0}, {"id": "NF-20260620-0026", "un": "UN Norte", "data": "2026-06-20", "vErp": 40153.32, "vNf": 40153.32, "dif": 0, "st": "Conciliado", "tipo": null, "atraso": 0, "risco": 0}, {"id": "NF-20260621-0027", "un": "UN Centro", "data": "2026-06-21", "vErp": 0, "vNf": 82693.11, "dif": 82693.11, "st": "Divergente", "tipo": "Nota faltante na origem", "atraso": 0, "risco": 82693.11}, {"id": "NF-20260621-0028", "un": "UN Oeste", "data": "2026-06-21", "vErp": 362263.52, "vNf": 362263.52, "dif": 0, "st": "Conciliado", "tipo": null, "atraso": 0, "risco": 0}, {"id": "NF-20260621-0029", "un": "UN Sul", "data": "2026-06-21", "vErp": 66261.59, "vNf": 66261.59, "dif": 0, "st": "Conciliado", "tipo": null, "atraso": 0, "risco": 0}, {"id": "NF-20260621-0030", "un": "UN Centro", "data": "2026-06-21", "vErp": 155027.61, "vNf": 155027.61, "dif": 0, "st": "Divergente", "tipo": "Atraso na carga", "atraso": 6, "risco": 0}, {"id": "NF-20260621-0031", "un": "UN Norte", "data": "2026-06-21", "vErp": 347878.52, "vNf": 347878.52, "dif": 0, "st": "Conciliado", "tipo": null, "atraso": 0, "risco": 0}, {"id": "NF-20260622-0032", "un": "UN Oeste", "data": "2026-06-22", "vErp": 97914.41, "vNf": 195828.82, "dif": 97914.41, "st": "Divergente", "tipo": "Nota duplicada", "atraso": 0, "risco": 97914.41}, {"id": "NF-20260622-0033", "un": "UN Vale do Paraíba", "data": "2026-06-22", "vErp": 135001.24, "vNf": 135001.24, "dif": 0, "st": "Conciliado", "tipo": null, "atraso": 0, "risco": 0}, {"id": "NF-20260622-0034", "un": "UN Centro", "data": "2026-06-22", "vErp": 112054.29, "vNf": 112054.29, "dif": 0, "st": "Conciliado", "tipo": null, "atraso": 0, "risco": 0}, {"id": "NF-20260622-0035", "un": "UN Oeste", "data": "2026-06-22", "vErp": 218525.93, "vNf": 218525.93, "dif": 0, "st": "Conciliado", "tipo": null, "atraso": 0, "risco": 0}, {"id": "NF-20260622-0036", "un": "UN Centro", "data": "2026-06-22", "vErp": 173375.26, "vNf": 168174, "dif": -5201.26000000001, "st": "Divergente", "tipo": "Valor divergente", "atraso": 0, "risco": 5201.26000000001}, {"id": "NF-20260622-0037", "un": "UN Vale do Paraíba", "data": "2026-06-22", "vErp": 389042.9, "vNf": 389042.9, "dif": 0, "st": "Conciliado", "tipo": null, "atraso": 0, "risco": 0}, {"id": "NF-20260622-0038", "un": "UN Sul", "data": "2026-06-22", "vErp": 207354.01, "vNf": 207354.01, "dif": 0, "st": "Conciliado", "tipo": null, "atraso": 0, "risco": 0}, {"id": "NF-20260623-0039", "un": "UN Leste", "data": "2026-06-23", "vErp": 115774.29, "vNf": 115774.29, "dif": 0, "st": "Conciliado", "tipo": null, "atraso": 0, "risco": 0}, {"id": "NF-20260623-0040", "un": "UN Sul", "data": "2026-06-23", "vErp": 103036.43, "vNf": 103036.43, "dif": 0, "st": "Conciliado", "tipo": null, "atraso": 0, "risco": 0}, {"id": "NF-20260623-0041", "un": "UN Leste", "data": "2026-06-23", "vErp": 76070.82, "vNf": 76070.82, "dif": 0, "st": "Conciliado", "tipo": null, "atraso": 0, "risco": 0}, {"id": "NF-20260623-0042", "un": "UN Centro", "data": "2026-06-23", "vErp": 75658.97, "vNf": 75658.97, "dif": 0, "st": "Conciliado", "tipo": null, "atraso": 0, "risco": 0}, {"id": "NF-20260623-0043", "un": "UN Leste", "data": "2026-06-23", "vErp": 61642.01, "vNf": 61642.01, "dif": 0, "st": "Conciliado", "tipo": null, "atraso": 0, "risco": 0}, {"id": "NF-20260623-0044", "un": "UN Sul", "data": "2026-06-23", "vErp": 96847.72, "vNf": 96847.72, "dif": 0, "st": "Conciliado", "tipo": null, "atraso": 0, "risco": 0}, {"id": "NF-20260623-0045", "un": "UN Norte", "data": "2026-06-23", "vErp": 301025.64, "vNf": 301025.64, "dif": 0, "st": "Conciliado", "tipo": null, "atraso": 0, "risco": 0}, {"id": "NF-20260624-0046", "un": "UN Sul", "data": "2026-06-24", "vErp": 476896.22, "vNf": 476896.22, "dif": 0, "st": "Conciliado", "tipo": null, "atraso": 0, "risco": 0}, {"id": "NF-20260624-0047", "un": "UN Sul", "data": "2026-06-24", "vErp": 0, "vNf": 170333.54, "dif": 170333.54, "st": "Divergente", "tipo": "Nota faltante na origem", "atraso": 0, "risco": 170333.54}, {"id": "NF-20260624-0048", "un": "UN Vale do Paraíba", "data": "2026-06-24", "vErp": 149140.6, "vNf": 149140.6, "dif": 0, "st": "Conciliado", "tipo": null, "atraso": 0, "risco": 0}, {"id": "NF-20260624-0049", "un": "UN Oeste", "data": "2026-06-24", "vErp": 262350.53, "vNf": 262350.53, "dif": 0, "st": "Conciliado", "tipo": null, "atraso": 0, "risco": 0}, {"id": "NF-20260625-0050", "un": "UN Norte", "data": "2026-06-25", "vErp": 95971.14, "vNf": 95971.14, "dif": 0, "st": "Conciliado", "tipo": null, "atraso": 0, "risco": 0}, {"id": "NF-20260625-0051", "un": "UN Leste", "data": "2026-06-25", "vErp": 371164.33, "vNf": 371164.33, "dif": 0, "st": "Conciliado", "tipo": null, "atraso": 0, "risco": 0}, {"id": "NF-20260625-0052", "un": "UN Vale do Paraíba", "data": "2026-06-25", "vErp": 418496.26, "vNf": 418496.26, "dif": 0, "st": "Conciliado", "tipo": null, "atraso": 0, "risco": 0}, {"id": "NF-20260625-0053", "un": "UN Norte", "data": "2026-06-25", "vErp": 263278.59, "vNf": 263278.59, "dif": 0, "st": "Conciliado", "tipo": null, "atraso": 0, "risco": 0}, {"id": "NF-20260625-0054", "un": "UN Norte", "data": "2026-06-25", "vErp": 377372.06, "vNf": 377372.06, "dif": 0, "st": "Conciliado", "tipo": null, "atraso": 0, "risco": 0}, {"id": "NF-20260625-0055", "un": "UN Centro", "data": "2026-06-25", "vErp": 178349.25, "vNf": 178349.25, "dif": 0, "st": "Conciliado", "tipo": null, "atraso": 0, "risco": 0}, {"id": "NF-20260625-0056", "un": "UN Oeste", "data": "2026-06-25", "vErp": 392735.36, "vNf": 392735.36, "dif": 0, "st": "Conciliado", "tipo": null, "atraso": 0, "risco": 0}, {"id": "NF-20260625-0057", "un": "UN Vale do Paraíba", "data": "2026-06-25", "vErp": 391496.73, "vNf": 391496.73, "dif": 0, "st": "Conciliado", "tipo": null, "atraso": 0, "risco": 0}, {"id": "NF-20260626-0058", "un": "UN Norte", "data": "2026-06-26", "vErp": 358951.8, "vNf": 358951.8, "dif": 0, "st": "Conciliado", "tipo": null, "atraso": 0, "risco": 0}, {"id": "NF-20260626-0059", "un": "UN Norte", "data": "2026-06-26", "vErp": 242508.03, "vNf": 242508.03, "dif": 0, "st": "Conciliado", "tipo": null, "atraso": 0, "risco": 0}, {"id": "NF-20260626-0060", "un": "UN Centro", "data": "2026-06-26", "vErp": 460431.78, "vNf": 460431.78, "dif": 0, "st": "Conciliado", "tipo": null, "atraso": 0, "risco": 0}, {"id": "NF-20260626-0061", "un": "UN Vale do Paraíba", "data": "2026-06-26", "vErp": 474617.13, "vNf": 474617.13, "dif": 0, "st": "Conciliado", "tipo": null, "atraso": 0, "risco": 0}, {"id": "NF-20260626-0062", "un": "UN Norte", "data": "2026-06-26", "vErp": 66242.16, "vNf": 66242.16, "dif": 0, "st": "Divergente", "tipo": "Atraso na carga", "atraso": 3, "risco": 0}, {"id": "NF-20260626-0063", "un": "UN Norte", "data": "2026-06-26", "vErp": 121968.01, "vNf": 121968.01, "dif": 0, "st": "Conciliado", "tipo": null, "atraso": 0, "risco": 0}, {"id": "NF-20260626-0064", "un": "UN Centro", "data": "2026-06-26", "vErp": 408195.99, "vNf": 408195.99, "dif": 0, "st": "Conciliado", "tipo": null, "atraso": 0, "risco": 0}, {"id": "NF-20260627-0065", "un": "UN Vale do Paraíba", "data": "2026-06-27", "vErp": 68150.32, "vNf": 68150.32, "dif": 0, "st": "Conciliado", "tipo": null, "atraso": 0, "risco": 0}, {"id": "NF-20260627-0066", "un": "UN Sul", "data": "2026-06-27", "vErp": 382036.3, "vNf": 382036.3, "dif": 0, "st": "Conciliado", "tipo": null, "atraso": 0, "risco": 0}, {"id": "NF-20260627-0067", "un": "UN Sul", "data": "2026-06-27", "vErp": 430054.95, "vNf": 430054.95, "dif": 0, "st": "Conciliado", "tipo": null, "atraso": 0, "risco": 0}, {"id": "NF-20260627-0068", "un": "UN Vale do Paraíba", "data": "2026-06-27", "vErp": 179632.74, "vNf": 179632.74, "dif": 0, "st": "Conciliado", "tipo": null, "atraso": 0, "risco": 0}, {"id": "NF-20260627-0069", "un": "UN Vale do Paraíba", "data": "2026-06-27", "vErp": 208127.32, "vNf": 208127.32, "dif": 0, "st": "Conciliado", "tipo": null, "atraso": 0, "risco": 0}, {"id": "NF-20260627-0070", "un": "UN Leste", "data": "2026-06-27", "vErp": 356159.4, "vNf": 712318.8, "dif": 356159.4, "st": "Divergente", "tipo": "Nota duplicada", "atraso": 0, "risco": 356159.4}, {"id": "NF-20260628-0071", "un": "UN Oeste", "data": "2026-06-28", "vErp": 295865.54, "vNf": 295865.54, "dif": 0, "st": "Conciliado", "tipo": null, "atraso": 0, "risco": 0}, {"id": "NF-20260628-0072", "un": "UN Vale do Paraíba", "data": "2026-06-28", "vErp": 95778.44, "vNf": 95778.44, "dif": 0, "st": "Conciliado", "tipo": null, "atraso": 0, "risco": 0}, {"id": "NF-20260628-0073", "un": "UN Sul", "data": "2026-06-28", "vErp": 325770.73, "vNf": 325770.73, "dif": 0, "st": "Conciliado", "tipo": null, "atraso": 0, "risco": 0}, {"id": "NF-20260628-0074", "un": "UN Centro", "data": "2026-06-28", "vErp": 276728.5, "vNf": null, "dif": null, "st": "Pendente", "tipo": null, "atraso": 0, "risco": 0}, {"id": "NF-20260629-0075", "un": "UN Centro", "data": "2026-06-29", "vErp": 367273.3, "vNf": 734546.6, "dif": 367273.3, "st": "Divergente", "tipo": "Nota duplicada", "atraso": 0, "risco": 367273.3}, {"id": "NF-20260629-0076", "un": "UN Oeste", "data": "2026-06-29", "vErp": 42597.18, "vNf": 42597.18, "dif": 0, "st": "Conciliado", "tipo": null, "atraso": 0, "risco": 0}, {"id": "NF-20260629-0077", "un": "UN Centro", "data": "2026-06-29", "vErp": 138242.73, "vNf": 138242.73, "dif": 0, "st": "Conciliado", "tipo": null, "atraso": 0, "risco": 0}, {"id": "NF-20260629-0078", "un": "UN Norte", "data": "2026-06-29", "vErp": 274958.74, "vNf": 274958.74, "dif": 0, "st": "Conciliado", "tipo": null, "atraso": 0, "risco": 0}, {"id": "NF-20260630-0079", "un": "UN Vale do Paraíba", "data": "2026-06-30", "vErp": 189202.81, "vNf": 189202.81, "dif": 0, "st": "Conciliado", "tipo": null, "atraso": 0, "risco": 0}, {"id": "NF-20260630-0080", "un": "UN Centro", "data": "2026-06-30", "vErp": 396771.16, "vNf": 396771.16, "dif": 0, "st": "Conciliado", "tipo": null, "atraso": 0, "risco": 0}, {"id": "NF-20260630-0081", "un": "UN Centro", "data": "2026-06-30", "vErp": 88843.47, "vNf": 94142.88, "dif": 5299.41, "st": "Divergente", "tipo": "Valor divergente", "atraso": 0, "risco": 5299.41}, {"id": "NF-20260630-0082", "un": "UN Oeste", "data": "2026-06-30", "vErp": 303849.59, "vNf": 303849.59, "dif": 0, "st": "Conciliado", "tipo": null, "atraso": 0, "risco": 0}, {"id": "NF-20260701-0083", "un": "UN Oeste", "data": "2026-07-01", "vErp": 93701.54, "vNf": 93701.54, "dif": 0, "st": "Conciliado", "tipo": null, "atraso": 0, "risco": 0}, {"id": "NF-20260701-0084", "un": "UN Leste", "data": "2026-07-01", "vErp": 280414.03, "vNf": 280414.03, "dif": 0, "st": "Conciliado", "tipo": null, "atraso": 0, "risco": 0}, {"id": "NF-20260701-0085", "un": "UN Centro", "data": "2026-07-01", "vErp": 268826.86, "vNf": 268826.86, "dif": 0, "st": "Conciliado", "tipo": null, "atraso": 0, "risco": 0}, {"id": "NF-20260701-0086", "un": "UN Leste", "data": "2026-07-01", "vErp": 427452.52, "vNf": 854905.04, "dif": 427452.52, "st": "Divergente", "tipo": "Nota duplicada", "atraso": 0, "risco": 427452.52}, {"id": "NF-20260701-0087", "un": "UN Norte", "data": "2026-07-01", "vErp": 48989.5, "vNf": 48989.5, "dif": 0, "st": "Divergente", "tipo": "Atraso na carga", "atraso": 6, "risco": 0}, {"id": "NF-20260702-0088", "un": "UN Leste", "data": "2026-07-02", "vErp": 229461.78, "vNf": 229461.78, "dif": 0, "st": "Conciliado", "tipo": null, "atraso": 0, "risco": 0}, {"id": "NF-20260702-0089", "un": "UN Centro", "data": "2026-07-02", "vErp": 302761.96, "vNf": 302761.96, "dif": 0, "st": "Conciliado", "tipo": null, "atraso": 0, "risco": 0}, {"id": "NF-20260702-0090", "un": "UN Norte", "data": "2026-07-02", "vErp": 233555.61, "vNf": 233555.61, "dif": 0, "st": "Conciliado", "tipo": null, "atraso": 0, "risco": 0}, {"id": "NF-20260702-0091", "un": "UN Sul", "data": "2026-07-02", "vErp": 258488.34, "vNf": 258488.34, "dif": 0, "st": "Conciliado", "tipo": null, "atraso": 0, "risco": 0}, {"id": "NF-20260703-0092", "un": "UN Norte", "data": "2026-07-03", "vErp": 445252.9, "vNf": 445252.9, "dif": 0, "st": "Conciliado", "tipo": null, "atraso": 0, "risco": 0}, {"id": "NF-20260703-0093", "un": "UN Oeste", "data": "2026-07-03", "vErp": 407999.9, "vNf": 400973.45, "dif": -7026.45000000001, "st": "Divergente", "tipo": "Valor divergente", "atraso": 0, "risco": 7026.45000000001}, {"id": "NF-20260703-0094", "un": "UN Norte", "data": "2026-07-03", "vErp": 62645.74, "vNf": 62645.74, "dif": 0, "st": "Conciliado", "tipo": null, "atraso": 0, "risco": 0}, {"id": "NF-20260703-0095", "un": "UN Leste", "data": "2026-07-03", "vErp": 125710.41, "vNf": 125710.41, "dif": 0, "st": "Conciliado", "tipo": null, "atraso": 0, "risco": 0}, {"id": "NF-20260703-0096", "un": "UN Leste", "data": "2026-07-03", "vErp": 0, "vNf": 433661.89, "dif": 433661.89, "st": "Divergente", "tipo": "Nota faltante na origem", "atraso": 0, "risco": 433661.89}, {"id": "NF-20260703-0097", "un": "UN Oeste", "data": "2026-07-03", "vErp": 143898.53, "vNf": 143898.53, "dif": 0, "st": "Divergente", "tipo": "Atraso na carga", "atraso": 3, "risco": 0}, {"id": "NF-20260703-0098", "un": "UN Vale do Paraíba", "data": "2026-07-03", "vErp": 458626.86, "vNf": 458626.86, "dif": 0, "st": "Conciliado", "tipo": null, "atraso": 0, "risco": 0}, {"id": "NF-20260703-0099", "un": "UN Sul", "data": "2026-07-03", "vErp": 103257.83, "vNf": 103257.83, "dif": 0, "st": "Conciliado", "tipo": null, "atraso": 0, "risco": 0}, {"id": "NF-20260704-0100", "un": "UN Oeste", "data": "2026-07-04", "vErp": 347845.6, "vNf": 347845.6, "dif": 0, "st": "Conciliado", "tipo": null, "atraso": 0, "risco": 0}, {"id": "NF-20260704-0101", "un": "UN Sul", "data": "2026-07-04", "vErp": 182602.26, "vNf": 182602.26, "dif": 0, "st": "Conciliado", "tipo": null, "atraso": 0, "risco": 0}, {"id": "NF-20260704-0102", "un": "UN Norte", "data": "2026-07-04", "vErp": 71487.31, "vNf": 71487.31, "dif": 0, "st": "Conciliado", "tipo": null, "atraso": 0, "risco": 0}, {"id": "NF-20260704-0103", "un": "UN Norte", "data": "2026-07-04", "vErp": 279322.61, "vNf": 279322.61, "dif": 0, "st": "Conciliado", "tipo": null, "atraso": 0, "risco": 0}, {"id": "NF-20260704-0104", "un": "UN Leste", "data": "2026-07-04", "vErp": 202955.05, "vNf": 202955.05, "dif": 0, "st": "Conciliado", "tipo": null, "atraso": 0, "risco": 0}, {"id": "NF-20260705-0105", "un": "UN Centro", "data": "2026-07-05", "vErp": 462348.62, "vNf": 924697.24, "dif": 462348.62, "st": "Divergente", "tipo": "Nota duplicada", "atraso": 0, "risco": 462348.62}, {"id": "NF-20260705-0106", "un": "UN Leste", "data": "2026-07-05", "vErp": 67827.57, "vNf": 67827.57, "dif": 0, "st": "Conciliado", "tipo": null, "atraso": 0, "risco": 0}, {"id": "NF-20260705-0107", "un": "UN Oeste", "data": "2026-07-05", "vErp": 151700.74, "vNf": 151700.74, "dif": 0, "st": "Divergente", "tipo": "Atraso na carga", "atraso": 4, "risco": 0}, {"id": "NF-20260705-0108", "un": "UN Sul", "data": "2026-07-05", "vErp": 97215.58, "vNf": 97215.58, "dif": 0, "st": "Conciliado", "tipo": null, "atraso": 0, "risco": 0}, {"id": "NF-20260705-0109", "un": "UN Centro", "data": "2026-07-05", "vErp": 252575.42, "vNf": 252575.42, "dif": 0, "st": "Conciliado", "tipo": null, "atraso": 0, "risco": 0}, {"id": "NF-20260705-0110", "un": "UN Norte", "data": "2026-07-05", "vErp": 55886.93, "vNf": 55886.93, "dif": 0, "st": "Conciliado", "tipo": null, "atraso": 0, "risco": 0}, {"id": "NF-20260706-0111", "un": "UN Leste", "data": "2026-07-06", "vErp": 151015.54, "vNf": null, "dif": null, "st": "Pendente", "tipo": null, "atraso": 0, "risco": 0}, {"id": "NF-20260706-0112", "un": "UN Leste", "data": "2026-07-06", "vErp": 390732.87, "vNf": 781465.74, "dif": 390732.87, "st": "Divergente", "tipo": "Nota duplicada", "atraso": 0, "risco": 390732.87}, {"id": "NF-20260706-0113", "un": "UN Leste", "data": "2026-07-06", "vErp": 149002.95, "vNf": 145168.25, "dif": -3834.70000000001, "st": "Divergente", "tipo": "Valor divergente", "atraso": 0, "risco": 3834.70000000001}, {"id": "NF-20260706-0114", "un": "UN Centro", "data": "2026-07-06", "vErp": 217992.15, "vNf": 217992.15, "dif": 0, "st": "Conciliado", "tipo": null, "atraso": 0, "risco": 0}, {"id": "NF-20260706-0115", "un": "UN Centro", "data": "2026-07-06", "vErp": 88151.16, "vNf": 88151.16, "dif": 0, "st": "Conciliado", "tipo": null, "atraso": 0, "risco": 0}, {"id": "NF-20260706-0116", "un": "UN Oeste", "data": "2026-07-06", "vErp": 452156.66, "vNf": 452156.66, "dif": 0, "st": "Conciliado", "tipo": null, "atraso": 0, "risco": 0}, {"id": "NF-20260706-0117", "un": "UN Norte", "data": "2026-07-06", "vErp": 52670.87, "vNf": 52670.87, "dif": 0, "st": "Conciliado", "tipo": null, "atraso": 0, "risco": 0}, {"id": "NF-20260707-0118", "un": "UN Vale do Paraíba", "data": "2026-07-07", "vErp": 167252.43, "vNf": 167252.43, "dif": 0, "st": "Conciliado", "tipo": null, "atraso": 0, "risco": 0}, {"id": "NF-20260707-0119", "un": "UN Norte", "data": "2026-07-07", "vErp": 230559.09, "vNf": 230559.09, "dif": 0, "st": "Conciliado", "tipo": null, "atraso": 0, "risco": 0}, {"id": "NF-20260707-0120", "un": "UN Norte", "data": "2026-07-07", "vErp": 186150.46, "vNf": null, "dif": null, "st": "Pendente", "tipo": null, "atraso": 0, "risco": 0}, {"id": "NF-20260707-0121", "un": "UN Norte", "data": "2026-07-07", "vErp": 46627.21, "vNf": null, "dif": null, "st": "Pendente", "tipo": null, "atraso": 0, "risco": 0}, {"id": "NF-20260707-0122", "un": "UN Centro", "data": "2026-07-07", "vErp": 277972.11, "vNf": 277972.11, "dif": 0, "st": "Divergente", "tipo": "Atraso na carga", "atraso": 3, "risco": 0}, {"id": "NF-20260707-0123", "un": "UN Sul", "data": "2026-07-07", "vErp": 77826.61, "vNf": 77826.61, "dif": 0, "st": "Conciliado", "tipo": null, "atraso": 0, "risco": 0}, {"id": "NF-20260708-0124", "un": "UN Vale do Paraíba", "data": "2026-07-08", "vErp": 252750.71, "vNf": 252750.71, "dif": 0, "st": "Conciliado", "tipo": null, "atraso": 0, "risco": 0}, {"id": "NF-20260708-0125", "un": "UN Sul", "data": "2026-07-08", "vErp": 466640.58, "vNf": 466640.58, "dif": 0, "st": "Conciliado", "tipo": null, "atraso": 0, "risco": 0}, {"id": "NF-20260708-0126", "un": "UN Oeste", "data": "2026-07-08", "vErp": 472098.24, "vNf": 472098.24, "dif": 0, "st": "Conciliado", "tipo": null, "atraso": 0, "risco": 0}, {"id": "NF-20260708-0127", "un": "UN Vale do Paraíba", "data": "2026-07-08", "vErp": 0, "vNf": 357979.88, "dif": 357979.88, "st": "Divergente", "tipo": "Nota faltante na origem", "atraso": 0, "risco": 357979.88}, {"id": "NF-20260708-0128", "un": "UN Leste", "data": "2026-07-08", "vErp": 406644.75, "vNf": null, "dif": null, "st": "Pendente", "tipo": null, "atraso": 0, "risco": 0}, {"id": "NF-20260708-0129", "un": "UN Vale do Paraíba", "data": "2026-07-08", "vErp": 363400.14, "vNf": 363400.14, "dif": 0, "st": "Conciliado", "tipo": null, "atraso": 0, "risco": 0}, {"id": "NF-20260708-0130", "un": "UN Oeste", "data": "2026-07-08", "vErp": 54930.49, "vNf": 54930.49, "dif": 0, "st": "Conciliado", "tipo": null, "atraso": 0, "risco": 0}, {"id": "NF-20260709-0131", "un": "UN Centro", "data": "2026-07-09", "vErp": 331744.48, "vNf": 331744.48, "dif": 0, "st": "Conciliado", "tipo": null, "atraso": 0, "risco": 0}, {"id": "NF-20260709-0132", "un": "UN Oeste", "data": "2026-07-09", "vErp": 341708.48, "vNf": null, "dif": null, "st": "Pendente", "tipo": null, "atraso": 0, "risco": 0}, {"id": "NF-20260709-0133", "un": "UN Oeste", "data": "2026-07-09", "vErp": 100889.82, "vNf": 100889.82, "dif": 0, "st": "Conciliado", "tipo": null, "atraso": 0, "risco": 0}, {"id": "NF-20260709-0134", "un": "UN Norte", "data": "2026-07-09", "vErp": 193863.61, "vNf": 193863.61, "dif": 0, "st": "Conciliado", "tipo": null, "atraso": 0, "risco": 0}, {"id": "NF-20260709-0135", "un": "UN Centro", "data": "2026-07-09", "vErp": 175590.25, "vNf": null, "dif": null, "st": "Pendente", "tipo": null, "atraso": 0, "risco": 0}, {"id": "NF-20260709-0136", "un": "UN Norte", "data": "2026-07-09", "vErp": 0, "vNf": 128039.64, "dif": 128039.64, "st": "Divergente", "tipo": "Nota faltante na origem", "atraso": 0, "risco": 128039.64}, {"id": "NF-20260709-0137", "un": "UN Sul", "data": "2026-07-09", "vErp": 67750.75, "vNf": 67750.75, "dif": 0, "st": "Conciliado", "tipo": null, "atraso": 0, "risco": 0}, {"id": "NF-20260710-0138", "un": "UN Oeste", "data": "2026-07-10", "vErp": 257131.04, "vNf": null, "dif": null, "st": "Pendente", "tipo": null, "atraso": 0, "risco": 0}, {"id": "NF-20260710-0139", "un": "UN Norte", "data": "2026-07-10", "vErp": 397669.93, "vNf": 390924.09, "dif": -6745.83999999997, "st": "Divergente", "tipo": "Valor divergente", "atraso": 0, "risco": 6745.83999999997}, {"id": "NF-20260710-0140", "un": "UN Norte", "data": "2026-07-10", "vErp": 166910.05, "vNf": 166910.05, "dif": 0, "st": "Conciliado", "tipo": null, "atraso": 0, "risco": 0}, {"id": "NF-20260710-0141", "un": "UN Centro", "data": "2026-07-10", "vErp": 460936.73, "vNf": 460936.73, "dif": 0, "st": "Conciliado", "tipo": null, "atraso": 0, "risco": 0}, {"id": "NF-20260710-0142", "un": "UN Oeste", "data": "2026-07-10", "vErp": 325894.65, "vNf": 325894.65, "dif": 0, "st": "Conciliado", "tipo": null, "atraso": 0, "risco": 0}, {"id": "NF-20260711-0143", "un": "UN Sul", "data": "2026-07-11", "vErp": 373940.11, "vNf": 373940.11, "dif": 0, "st": "Conciliado", "tipo": null, "atraso": 0, "risco": 0}, {"id": "NF-20260711-0144", "un": "UN Sul", "data": "2026-07-11", "vErp": 97258.42, "vNf": 97258.42, "dif": 0, "st": "Conciliado", "tipo": null, "atraso": 0, "risco": 0}, {"id": "NF-20260711-0145", "un": "UN Vale do Paraíba", "data": "2026-07-11", "vErp": 95138.5, "vNf": 95138.5, "dif": 0, "st": "Conciliado", "tipo": null, "atraso": 0, "risco": 0}, {"id": "NF-20260711-0146", "un": "UN Vale do Paraíba", "data": "2026-07-11", "vErp": 431374.06, "vNf": 431374.06, "dif": 0, "st": "Conciliado", "tipo": null, "atraso": 0, "risco": 0}, {"id": "NF-20260711-0147", "un": "UN Vale do Paraíba", "data": "2026-07-11", "vErp": 345473.98, "vNf": 345473.98, "dif": 0, "st": "Conciliado", "tipo": null, "atraso": 0, "risco": 0}, {"id": "NF-20260711-0148", "un": "UN Centro", "data": "2026-07-11", "vErp": 368790.22, "vNf": 368790.22, "dif": 0, "st": "Conciliado", "tipo": null, "atraso": 0, "risco": 0}, {"id": "NF-20260711-0149", "un": "UN Leste", "data": "2026-07-11", "vErp": 401884.1, "vNf": 401884.1, "dif": 0, "st": "Conciliado", "tipo": null, "atraso": 0, "risco": 0}, {"id": "NF-20260711-0150", "un": "UN Vale do Paraíba", "data": "2026-07-11", "vErp": 337302.92, "vNf": 337302.92, "dif": 0, "st": "Conciliado", "tipo": null, "atraso": 0, "risco": 0}, {"id": "NF-20260712-0151", "un": "UN Leste", "data": "2026-07-12", "vErp": 0, "vNf": 44022.24, "dif": 44022.24, "st": "Divergente", "tipo": "Nota faltante na origem", "atraso": 0, "risco": 44022.24}, {"id": "NF-20260712-0152", "un": "UN Leste", "data": "2026-07-12", "vErp": 199478.22, "vNf": 199478.22, "dif": 0, "st": "Conciliado", "tipo": null, "atraso": 0, "risco": 0}, {"id": "NF-20260712-0153", "un": "UN Leste", "data": "2026-07-12", "vErp": 312495.2, "vNf": 312495.2, "dif": 0, "st": "Conciliado", "tipo": null, "atraso": 0, "risco": 0}, {"id": "NF-20260712-0154", "un": "UN Vale do Paraíba", "data": "2026-07-12", "vErp": 140051.86, "vNf": 140051.86, "dif": 0, "st": "Conciliado", "tipo": null, "atraso": 0, "risco": 0}, {"id": "NF-20260712-0155", "un": "UN Sul", "data": "2026-07-12", "vErp": 388963.9, "vNf": 388963.9, "dif": 0, "st": "Conciliado", "tipo": null, "atraso": 0, "risco": 0}, {"id": "NF-20260713-0156", "un": "UN Centro", "data": "2026-07-13", "vErp": 71373.87, "vNf": 71373.87, "dif": 0, "st": "Conciliado", "tipo": null, "atraso": 0, "risco": 0}, {"id": "NF-20260713-0157", "un": "UN Vale do Paraíba", "data": "2026-07-13", "vErp": 361554.75, "vNf": 361554.75, "dif": 0, "st": "Conciliado", "tipo": null, "atraso": 0, "risco": 0}, {"id": "NF-20260713-0158", "un": "UN Leste", "data": "2026-07-13", "vErp": 410760.13, "vNf": 410760.13, "dif": 0, "st": "Conciliado", "tipo": null, "atraso": 0, "risco": 0}, {"id": "NF-20260713-0159", "un": "UN Oeste", "data": "2026-07-13", "vErp": 133831.26, "vNf": 133831.26, "dif": 0, "st": "Conciliado", "tipo": null, "atraso": 0, "risco": 0}, {"id": "NF-20260713-0160", "un": "UN Sul", "data": "2026-07-13", "vErp": 252276.95, "vNf": 252276.95, "dif": 0, "st": "Conciliado", "tipo": null, "atraso": 0, "risco": 0}, {"id": "NF-20260713-0161", "un": "UN Sul", "data": "2026-07-13", "vErp": 439710, "vNf": 439710, "dif": 0, "st": "Conciliado", "tipo": null, "atraso": 0, "risco": 0}, {"id": "NF-20260713-0162", "un": "UN Leste", "data": "2026-07-13", "vErp": 307638.31, "vNf": 307638.31, "dif": 0, "st": "Conciliado", "tipo": null, "atraso": 0, "risco": 0}, {"id": "NF-20260713-0163", "un": "UN Leste", "data": "2026-07-13", "vErp": 299867.37, "vNf": 299867.37, "dif": 0, "st": "Conciliado", "tipo": null, "atraso": 0, "risco": 0}, {"id": "NF-20260714-0164", "un": "UN Centro", "data": "2026-07-14", "vErp": 285492.76, "vNf": null, "dif": null, "st": "Pendente", "tipo": null, "atraso": 0, "risco": 0}, {"id": "NF-20260714-0165", "un": "UN Leste", "data": "2026-07-14", "vErp": 248609.12, "vNf": 248609.12, "dif": 0, "st": "Conciliado", "tipo": null, "atraso": 0, "risco": 0}, {"id": "NF-20260714-0166", "un": "UN Leste", "data": "2026-07-14", "vErp": 341483.33, "vNf": 341483.33, "dif": 0, "st": "Conciliado", "tipo": null, "atraso": 0, "risco": 0}, {"id": "NF-20260714-0167", "un": "UN Norte", "data": "2026-07-14", "vErp": 348991.91, "vNf": 348991.91, "dif": 0, "st": "Conciliado", "tipo": null, "atraso": 0, "risco": 0}, {"id": "NF-20260714-0168", "un": "UN Sul", "data": "2026-07-14", "vErp": 239852.62, "vNf": 479705.24, "dif": 239852.62, "st": "Divergente", "tipo": "Nota duplicada", "atraso": 0, "risco": 239852.62}, {"id": "NF-20260714-0169", "un": "UN Norte", "data": "2026-07-14", "vErp": 470156.58, "vNf": 470156.58, "dif": 0, "st": "Conciliado", "tipo": null, "atraso": 0, "risco": 0}, {"id": "NF-20260715-0170", "un": "UN Norte", "data": "2026-07-15", "vErp": 236536.87, "vNf": 236536.87, "dif": 0, "st": "Conciliado", "tipo": null, "atraso": 0, "risco": 0}, {"id": "NF-20260715-0171", "un": "UN Sul", "data": "2026-07-15", "vErp": 477285.13, "vNf": 477285.13, "dif": 0, "st": "Conciliado", "tipo": null, "atraso": 0, "risco": 0}, {"id": "NF-20260715-0172", "un": "UN Oeste", "data": "2026-07-15", "vErp": 0, "vNf": 63575.79, "dif": 63575.79, "st": "Divergente", "tipo": "Nota faltante na origem", "atraso": 0, "risco": 63575.79}, {"id": "NF-20260715-0173", "un": "UN Norte", "data": "2026-07-15", "vErp": 89672.28, "vNf": 89672.28, "dif": 0, "st": "Conciliado", "tipo": null, "atraso": 0, "risco": 0}];
+
+const UNIDADES = ["UN Leste", "UN Oeste", "UN Norte", "UN Sul", "UN Centro", "UN Vale do Paraíba"];
+
+function formatBRL(v) {
+  if (v == null || Number.isNaN(v)) return "—";
+  return new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL", maximumFractionDigits: 0 }).format(v);
+}
+
+export default function V360Assistente() {
+  const aggregates = useMemo(() => {
+    const total = RECORDS.length;
+    const conciliadas = RECORDS.filter((r) => r.st === "Conciliado");
+    const divergentes = RECORDS.filter((r) => r.st === "Divergente");
+    const pendentes = RECORDS.filter((r) => r.st === "Pendente");
+    const taxaConciliacao = total ? (conciliadas.length / total) * 100 : 0;
+    const valorEmRisco = RECORDS.reduce((s, r) => s + (r.risco || 0), 0);
+
+    const porUnidade = {};
+    UNIDADES.forEach((u) => (porUnidade[u] = 0));
+    divergentes.forEach((r) => (porUnidade[r.un] = (porUnidade[r.un] || 0) + 1));
+
+    const porTipo = {};
+    divergentes.forEach((r) => (porTipo[r.tipo] = (porTipo[r.tipo] || 0) + 1));
+
+    return { total, conciliadas, divergentes, pendentes, taxaConciliacao, valorEmRisco, porUnidade, porTipo };
+  }, []);
+
+  const systemPrompt = useMemo(() => {
+    const resumo = {
+      totalNotas: aggregates.total,
+      taxaConciliacaoPct: Number(aggregates.taxaConciliacao.toFixed(1)),
+      valorEmRiscoBRL: Math.round(aggregates.valorEmRisco),
+      divergenciasAbertas: aggregates.divergentes.length,
+      pendentes: aggregates.pendentes.length,
+      divergenciasPorUnidade: aggregates.porUnidade,
+      divergenciasPorTipo: aggregates.porTipo,
+      periodo: "últimos 30 dias, até " + new Date().toLocaleDateString("pt-BR"),
+    };
+    return (
+      "Você é o assistente de dados do painel V360 · Radar Fiscal, uma ferramenta de monitoramento de integração de notas fiscais entre o ERP e o sistema fiscal de uma empresa de saneamento. " +
+      "Responda em português, de forma direta e objetiva, citando números quando fizer sentido, sempre com base nos dados abaixo (a mesma base usada no dashboard de Power BI). " +
+      "Nunca invente números que não estejam nos dados. Se a pergunta não puder ser respondida com o que foi fornecido, diga isso claramente. " +
+      "Contexto: notas 'Divergente' representam risco financeiro e devem ser investigadas; 'Pendente' aguardam conciliação; 'Conciliado' está tudo certo.\n\n" +
+      "RESUMO AGREGADO:\n" + JSON.stringify(resumo) +
+      "\n\nREGISTROS DETALHADOS (id, unidade, data, valorErp, valorNF, diferenca, status, tipoDivergencia, diasAtraso, valorEmRisco):\n" +
+      JSON.stringify(RECORDS)
+    );
+  }, [aggregates]);
+
+  const [messages, setMessages] = useState([
+    {
+      role: "assistant",
+      seed: true,
+      content:
+        "Oi! Sou o assistente de dados do V360. Posso responder perguntas sobre as notas fiscais dos últimos 30 dias — a mesma base que está no dashboard de Power BI. O que você quer saber?",
+    },
+  ]);
+  const [input, setInput] = useState("");
+  const [loading, setLoading] = useState(false);
+  const scrollRef = useRef(null);
+
+  useEffect(() => {
+    if (scrollRef.current) scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+  }, [messages, loading]);
+
+  async function sendMessage(text) {
+    const trimmed = text.trim();
+    if (!trimmed || loading) return;
+
+    const userMsg = { role: "user", content: trimmed };
+    const nextMessages = [...messages, userMsg];
+    setMessages(nextMessages);
+    setInput("");
+    setLoading(true);
+
+    try {
+      const apiMessages = nextMessages.filter((m) => !m.seed).map(({ role, content }) => ({ role, content }));
+      const response = await fetch("https://api.anthropic.com/v1/messages", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          model: "claude-sonnet-4-6",
+          max_tokens: 1000,
+          system: systemPrompt,
+          messages: apiMessages,
+        }),
+      });
+
+      if (!response.ok) throw new Error("Falha na resposta da API");
+      const data = await response.json();
+      const textBlocks = (data.content || [])
+        .filter((b) => b.type === "text")
+        .map((b) => b.text)
+        .join("\n");
+
+      setMessages((prev) => [
+        ...prev,
+        { role: "assistant", content: textBlocks || "Não consegui gerar uma resposta agora. Tente reformular a pergunta." },
+      ]);
+    } catch (err) {
+      setMessages((prev) => [
+        ...prev,
+        { role: "assistant", content: "Tive um problema para consultar os dados agora. Pode tentar de novo?" },
+      ]);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  const quickQuestions = [
+    "Qual unidade tem mais divergências?",
+    "Qual o valor total em risco agora?",
+    "Tem alguma nota duplicada recente?",
+    "Como está a taxa de conciliação essa semana?",
+  ];
+
+  return (
+    <div className="v360-chat-app">
+      <style>{`
+        .v360-chat-app {
+          --bg: #12151b; --bg-elevated: #1a1e26; --panel-border: #2a2f3a;
+          --paper: #ece5d2; --text: #e7e9ee; --muted: #8b93a6;
+          --accent: #4fa3ad; --accent-soft: rgba(79, 163, 173, 0.16);
+          --green: #4c8a5e; --red: #b6503f; --amber: #c98a2c;
+          font-family: 'IBM Plex Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+          background: var(--bg); color: var(--text); border-radius: 16px;
+          max-width: 640px; margin: 0 auto; border: 1px solid var(--panel-border); overflow: hidden;
+        }
+        .v360-chat-app, .v360-chat-app *, .v360-chat-app *::before, .v360-chat-app *::after { box-sizing: border-box; }
+        .v360-chat-app .mono { font-family: 'IBM Plex Mono', 'SFMono-Regular', Consolas, monospace; }
+
+        .cheader { display: flex; align-items: center; justify-content: space-between; padding: 16px 20px; border-bottom: 1px solid var(--panel-border); background: linear-gradient(180deg, var(--bg-elevated), var(--bg)); flex-wrap: wrap; gap: 10px; }
+        .cbrand { display: flex; align-items: center; gap: 11px; }
+        .cmark { font-family: 'IBM Plex Mono', monospace; font-weight: 700; font-size: 12px; border: 1.5px solid var(--accent); color: var(--accent); padding: 5px 8px; border-radius: 6px; }
+        .ctitle { font-size: 14px; font-weight: 600; }
+        .csub { font-size: 11.5px; color: var(--muted); margin-top: 1px; }
+
+        .ministrip { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; padding: 12px 16px; background: var(--bg-elevated); border-bottom: 1px solid var(--panel-border); }
+        .minicard { background: var(--paper); border-radius: 8px; padding: 8px 6px; text-align: center; }
+        .minival { font-family: 'IBM Plex Mono', monospace; font-weight: 700; font-size: 15px; color: #24291f; }
+        .minilabel { font-size: 9.5px; color: #55584c; text-transform: uppercase; letter-spacing: 0.3px; margin-top: 2px; }
+        .miniicon { color: #6b6f5e; margin-bottom: 2px; }
+
+        .chat-layout { display: flex; flex-direction: column; height: 480px; }
+        .chat-window { flex: 1; overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 12px; }
+        .msg { display: flex; gap: 9px; max-width: 85%; }
+        .msg-user { align-self: flex-end; flex-direction: row-reverse; }
+        .msg-avatar { width: 24px; height: 24px; border-radius: 6px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; background: var(--bg-elevated); border: 1px solid var(--panel-border); color: var(--accent); }
+        .msg-user .msg-avatar { color: var(--paper); background: #2a3038; }
+        .msg-bubble { font-size: 13.5px; line-height: 1.5; padding: 10px 13px; border-radius: 10px; background: var(--bg-elevated); border: 1px solid var(--panel-border); white-space: pre-wrap; }
+        .msg-user .msg-bubble { background: #23384030; border-color: var(--accent); }
+        .typing { display: flex; gap: 4px; padding: 4px 0; }
+        .typing span { width: 5px; height: 5px; border-radius: 50%; background: var(--muted); animation: tb 1.1s infinite; }
+        .typing span:nth-child(2) { animation-delay: 0.15s; }
+        .typing span:nth-child(3) { animation-delay: 0.3s; }
+        @keyframes tb { 0%, 60%, 100% { transform: translateY(0); opacity: 0.5; } 30% { transform: translateY(-4px); opacity: 1; } }
+
+        .chip-row { display: flex; gap: 7px; flex-wrap: wrap; padding: 0 16px 12px; }
+        .chip { font-size: 11.5px; color: var(--accent); background: var(--accent-soft); border: 1px solid transparent; padding: 6px 10px; border-radius: 999px; cursor: pointer; }
+        .chip:hover { border-color: var(--accent); }
+
+        .chat-input-row { display: flex; gap: 8px; padding: 14px 16px; border-top: 1px solid var(--panel-border); background: var(--bg-elevated); }
+        .chat-input { flex: 1; background: var(--bg); color: var(--text); border: 1px solid var(--panel-border); border-radius: 8px; padding: 10px 12px; font-size: 13.5px; font-family: 'IBM Plex Sans', sans-serif; }
+        .chat-input:focus-visible, .chat-input:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
+        .send-btn { background: var(--accent); color: #0d1116; border: none; border-radius: 8px; width: 40px; display: flex; align-items: center; justify-content: center; cursor: pointer; flex-shrink: 0; }
+        .send-btn:disabled { opacity: 0.45; cursor: not-allowed; }
+      `}</style>
+
+      <div className="cheader">
+        <div className="cbrand">
+          <span className="cmark">V360</span>
+          <div>
+            <div className="ctitle">Assistente de Dados</div>
+            <div className="csub">Radar Fiscal · mesma base do Power BI</div>
+          </div>
+        </div>
+        <MessageSquare size={16} color="var(--muted)" />
+      </div>
+
+      <div className="ministrip">
+        <div className="minicard">
+          <FileText className="miniicon" size={14} />
+          <div className="minival">{aggregates.total}</div>
+          <div className="minilabel">Notas</div>
+        </div>
+        <div className="minicard">
+          <CheckCircle2 className="miniicon" size={14} />
+          <div className="minival">{aggregates.taxaConciliacao.toFixed(1)}%</div>
+          <div className="minilabel">Conciliação</div>
+        </div>
+        <div className="minicard">
+          <Wallet className="miniicon" size={14} />
+          <div className="minival" style={{ fontSize: 12.5 }}>{formatBRL(aggregates.valorEmRisco)}</div>
+          <div className="minilabel">Em risco</div>
+        </div>
+        <div className="minicard">
+          <AlertTriangle className="miniicon" size={14} />
+          <div className="minival">{aggregates.divergentes.length}</div>
+          <div className="minilabel">Divergentes</div>
+        </div>
+      </div>
+
+      <div className="chat-layout">
+        <div className="chat-window" ref={scrollRef}>
+          {messages.map((m, i) => (
+            <div key={i} className={`msg ${m.role === "user" ? "msg-user" : ""}`}>
+              <div className="msg-avatar">{m.role === "user" ? <User size={13} /> : <Bot size={13} />}</div>
+              <div className="msg-bubble">{m.content}</div>
+            </div>
+          ))}
+          {loading && (
+            <div className="msg">
+              <div className="msg-avatar"><Bot size={13} /></div>
+              <div className="msg-bubble">
+                <div className="typing"><span /><span /><span /></div>
+              </div>
+            </div>
+          )}
+        </div>
+
+        <div className="chip-row">
+          {quickQuestions.map((q) => (
+            <button key={q} className="chip" onClick={() => sendMessage(q)} disabled={loading}>{q}</button>
+          ))}
+        </div>
+
+        <div className="chat-input-row">
+          <input
+            className="chat-input"
+            placeholder="Pergunte algo sobre as notas fiscais…"
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            onKeyDown={(e) => { if (e.key === "Enter") sendMessage(input); }}
+            aria-label="Mensagem para o assistente"
+          />
+          <button className="send-btn" onClick={() => sendMessage(input)} disabled={loading || !input.trim()} aria-label="Enviar">
+            {loading ? <Loader2 size={16} className="mono" /> : <Send size={16} />}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}

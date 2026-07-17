@@ -1,0 +1,42 @@
+{
+  "name": "V360 Radar Fiscal",
+  "dataColors": [
+    "#4FA3AD",
+    "#B6503F",
+    "#C98A2C",
+    "#4C8A5E",
+    "#8B93A6",
+    "#2A2F3A",
+    "#6E7A8A",
+    "#D9C9A3"
+  ],
+  "background": "#12151B",
+  "foreground": "#E7E9EE",
+  "tableAccent": "#4FA3AD",
+  "good": "#4C8A5E",
+  "neutral": "#C98A2C",
+  "bad": "#B6503F",
+  "maximum": "#4FA3AD",
+  "center": "#C98A2C",
+  "minimum": "#B6503F",
+  "textClasses": {
+    "callout": { "fontFace": "Segoe UI", "color": "#E7E9EE" },
+    "title": { "fontFace": "Segoe UI Semibold", "color": "#E7E9EE" },
+    "header": { "fontFace": "Segoe UI Semibold", "color": "#E7E9EE" },
+    "label": { "fontFace": "Segoe UI", "color": "#8B93A6" }
+  },
+  "visualStyles": {
+    "*": {
+      "*": {
+        "background": [{ "show": true, "color": { "solid": { "color": "#1A1E26" } }, "transparency": 0 }],
+        "border": [{ "show": true, "color": { "solid": { "color": "#2A2F3A" } }, "radius": 8 }]
+      }
+    },
+    "card": {
+      "*": {
+        "labels": [{ "color": { "solid": { "color": "#E7E9EE" } }, "fontSize": 28 }],
+        "categoryLabels": [{ "color": { "solid": { "color": "#8B93A6" } }, "fontSize": 11 }]
+      }
+    }
+  }
+}
