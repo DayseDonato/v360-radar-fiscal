@@ -16,6 +16,8 @@ Em ecossistemas de dados grandes, com múltiplas fontes (ERP, sistema fiscal, CR
 | `dashboard/v360_radar_fiscal.jsx` | Protótipo de dashboard interativo (React) com KPIs, gráficos de volume/divergência e um assistente de IA integrado. |
 | `chatbot/v360_assistente.jsx` | Versão standalone do assistente de dados (React), com os mesmos dados da planilha. |
 | `n8n/workflow.json` | Workflow do n8n que implementa o mesmo assistente usando um Chat Trigger + AI Agent + Google Gemini (gratuito). |
+| `sql/schema_notas_fiscais.sql` | Schema da tabela `notas` e exemplos das consultas SQL usadas pelo assistente para responder perguntas. |
+| `index.html` | Chatbot público (GitHub Pages): SQLite rodando no navegador (sql.js) + IA (Groq, modelo gpt-oss-20b) que escreve e executa SQL de verdade para responder perguntas sobre os dados. |
 
 ## Principais indicadores simulados
 
@@ -38,5 +40,7 @@ Em ecossistemas de dados grandes, com múltiplas fontes (ERP, sistema fiscal, CR
 5. Publique o workflow e abra o chat.
 
 ## Contexto
+
+Este é um projeto de portfólio/estudo de caso, com dados simulados — não representa nenhuma empresa real.
 
 Este é um projeto de portfólio/estudo de caso, com dados simulados — não representa nenhuma empresa real.
