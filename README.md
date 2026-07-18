@@ -43,4 +43,3 @@ Em ecossistemas de dados grandes, com múltiplas fontes (ERP, sistema fiscal, CR
 
 Este é um projeto de portfólio/estudo de caso, com dados simulados — não representa nenhuma empresa real.
 
-Este é um projeto de portfólio/estudo de caso, com dados simulados — não representa nenhuma empresa real.
